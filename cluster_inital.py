@@ -25,8 +25,6 @@ for i in range(0,N):
     Vy[i] = np.random.uniform(0,1)
     Vz[i] = np.random.uniform(0,1)
 
-   
-
 fig = plt.figure()
 ax = fig.add_subplot(111,projection='3d')
 ax.scatter(X,Y,Z)
