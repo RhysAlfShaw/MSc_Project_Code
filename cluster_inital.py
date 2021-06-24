@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-N = 100             #(number of stars)
+N = 1000             #(number of stars)
 Rmax = 1000          #(AU)
                      #Defalut units also include Mass in solar masses.
 X = np.zeros(N)
@@ -28,5 +28,6 @@ for i in range(0,N):
 
 fig = plt.figure()
 ax = fig.add_subplot(111,projection='3d')
+ax.set_box_aspect([1,1,1])
 scat = ax.scatter(X,Y,Z)
 plt.show()
