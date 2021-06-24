@@ -28,5 +28,5 @@ for i in range(0,N):
 
 fig = plt.figure()
 ax = fig.add_subplot(111,projection='3d')
-ax.scatter(X,Y,Z)
+scat = ax.scatter(X,Y,Z)
 plt.show()
