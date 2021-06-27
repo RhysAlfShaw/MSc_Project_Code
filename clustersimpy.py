@@ -9,19 +9,88 @@ M_sol = 1.99E30
 G = 6.67E-11
 AU = 1.49E11
 
-def ellipse(a,b,t):
-    u = -c     #x-position of the center
-    x = u + a*np.cos(t)
-    y = b*np.sin(t)
-    return x,y
-
 class gen_cluster:
     """
     This class will create 
     """
     def __init__(self,x):
-         self.i = x**2
+        self.Rmax = x[0]
+        self.N = x[1]
+        self.q = x[2]
+    
+    def Gen_positions(self,distribution):
+        X = np.zeros(self.N)
+        Y = np.zeros(self.N)
+        Z = np.zeros(self.N)
+        if distribution == 'Uniform':
+            i = 0
+            while i < self.N:
+                x = np.random.uniform(-self.Rmax,self.Rmax)
+                y = np.random.uniform(-self.Rmax,self.Rmax)
+                z = np.random.uniform(-self.Rmax,self.Rmax)
+                if np.sqrt(x**2+y**2+z**2) < self.Rmax :
+                    X[i] = x    
+                    Y[i] = y
+                    Z[i] = z
+                    i = i + 1
+            self.X = X
+            self.Y = Y
+            self.Z = Z
 
+        else:
+            print("INPUT ERROR: Please specify 'Uniform'or ....")
+    
+    def Gen_mass(self,IMF):
+        if IMF == 'constant':
+            Mass = np.zeros(self.N)
+
+            for i in range(0,self.N):
+                Mass[i] = 0.2
+            self.Mass = Mass
+        if IMF == 'OTHER':
+            #OTHER IMF CODE HERE!
+            i = 0 # place holder code!
+        else:
+            print("INPUT ERROR: Please specify 'constant' or....")
+
+    def Gen_velocities(self):
+        Vx = np.zeros(self.N)
+        Vy = np.zeros(self.N)
+        Vz = np.zeros(self.N)
+
+        for i in range(0,self.N): # Velocities between 0 and 1.
+            Vx[i] = np.random.uniform(0,1)
+            Vy[i] = np.random.uniform(0,1)
+            Vz[i] = np.random.uniform(0,1)
+        PE_tot = 0
+        #try:
+        for k in range(1,self.N): #note since 0 is the begining of the index.
+             for j in range(0,k-1):
+                R_res = np.sqrt((self.X[k]-self.X[j])**2 + (self.Y[k]-self.Y[j])**2 + (self.Z[k]-self.Z[j])**2)
+                PE_tot += (G * self.Mass[j]*M_sol**2*self.Mass[k])/(R_res*AU) 
+        
+        #else:
+        #    print("MASS OR POSITION ERROR!!, Please run Gen_position & Gen_mass first to prevent this error!!")
+        
+        print('Potential Energy',PE_tot)
+        # Calculating Kinetic Energy!
+        Ek_tot = 0
+        for i in range(0,self.N):
+            Ek_tot += 0.5 * self.Mass[i] *M_sol* (np.sqrt(Vx[i]**2 + Vy[j]**2 + Vz[i]**2))**2
+        
+        a = np.sqrt((self.q*PE_tot)/(Ek_tot))
+        self.Vx = Vx*a
+        self.Vy = Vy*a
+        self.Vz = Vz*a
+
+    def graph(self):
+        fig = plt.figure()
+        ax = fig.add_subplot(111,projection='3d')
+        ax.scatter(self.X,self.Y,self.Z)
+        ax.set_box_aspect([1,1,1])
+        plt.show()
+
+        
 class get_planet:
     """
     This class will create a planetary systems based on input parameters on a clsuters system.
