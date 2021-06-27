@@ -1,2 +1,2 @@
 # MSc_Project_Code
- Repository for my developing code as part of my MSc, this will be mostly written in python and is housed here to ensure acces throught my devices.
+ Repository for my developing code as part of my MSc, this will be mostly written in python. This is still under development. This code will, when completed, allow for the creating of star clusters of various properties, with planetary systems of various properties, to be created. This will allow the systems to be propergated through time using the time-symmetric 4th order Hermit integrator as described in kokubo et al. 1998.   
