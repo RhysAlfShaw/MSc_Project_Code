@@ -24,7 +24,7 @@ class gen_cluster:
     
 
 
-    def Gen_positions(self,distribution):
+    def Gen_positions(self,distribution,D=1,a=1,b=1,c=1):
         X = np.zeros(self.N)
         Y = np.zeros(self.N)
         Z = np.zeros(self.N)
@@ -42,11 +42,65 @@ class gen_cluster:
             self.X = X
             self.Y = Y
             self.Z = Z
+        if distribution == 'Fractal':  #fractal algorithm was from Goodwin & whitworth (2003)
+            gen_number = 0
+            n = 0
+            while n < self.N:
+                if n == 0:
+                    parent = np.zeros(1)
+                for i in range(0,len(parent)):
+                    x = self.gen_pos(parent[i],gen_number,0)
+                    if i == 0 and n == 0:
+                        par = self.survial(x,D)
+                    else:
+                        new = self.survial(x,D)
+                        if len(new) == 0:
+                            break
+                        else:
+                            par = np.vstack((par,new))
+                parent = par
+                n = len(parent)
+                gen_number += 1
+            self.X = parent[:,0]
+            self.Y = parent[:,0]
+            self.Z = parent[:,0]
+            print('Number of Generations :',gen_number)
+            print('Number of final stars :',n)
+
 
         else:
             print("INPUT ERROR: Please specify 'Uniform'or ....")
     
+    def Genlen(self,n,a=1,b=1,c=1):
+        return a*(1/2)**n , b*(1/2)**n, c*(1/2)**n
 
+    def gen_pos(self,parent,n,noise):
+    
+        a,b,c = self.Genlen(n)
+        one = np.array([[-(1/2)*b , -(1/2)*a , -(1/2)*c],
+                        [-(1/2)*b , -(1/2)*a ,  (1/2)*c],
+                        [-(1/2)*b ,  (1/2)*a , -(1/2)*c],
+                        [ (1/2)*b , -(1/2)*a , -(1/2)*c],
+                        [ (1/2)*b ,  (1/2)*a ,  (1/2)*c],
+                        [ (1/2)*b ,  (1/2)*a , -(1/2)*c],
+                        [ (1/2)*b , -(1/2)*a ,  (1/2)*c],
+                        [-(1/2)*b ,  (1/2)*a ,  (1/2)*c]])
+        noise = np.random.normal(0,0.01, size=(8,3))  #adds gaussian noise
+        new = np.subtract(one, parent) + noise
+        return new
+
+    def prob_of_mature(self,D):
+        return 2**(D-3)
+
+
+    def survial(self,children,D):
+        parent = []
+        for i in range(0,len(children)):
+            rand = np.random.uniform(0,1)
+            prob = self.prob_of_mature(D)
+            if rand<= prob:
+                parent+=[children[i]]
+        return np.array(parent)
 
     def Gen_mass(self,IMF):
         if IMF == 'constant':
