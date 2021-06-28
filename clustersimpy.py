@@ -62,8 +62,8 @@ class gen_cluster:
                 n = len(parent)
                 gen_number += 1
             self.X = parent[:,0]
-            self.Y = parent[:,0]
-            self.Z = parent[:,0]
+            self.Y = parent[:,1]
+            self.Z = parent[:,2]
             print('Number of Generations :',gen_number)
             print('Number of final stars :',n)
 
@@ -71,8 +71,13 @@ class gen_cluster:
         else:
             print("INPUT ERROR: Please specify 'Uniform'or ....")
     
+    """
+    FRACTAL ALGORITHM FUNCTIONS!
+    """
+
     def Genlen(self,n,a=1,b=1,c=1):
         return a*(1/2)**n , b*(1/2)**n, c*(1/2)**n
+
 
     def gen_pos(self,parent,n,noise):
     
@@ -101,6 +106,11 @@ class gen_cluster:
             if rand<= prob:
                 parent+=[children[i]]
         return np.array(parent)
+
+    """
+    IMF FUNCTIONS!
+
+    """
 
     def Gen_mass(self,IMF):
         if IMF == 'constant':
@@ -136,6 +146,9 @@ class gen_cluster:
             alpha = 2.3
         return m**(-alpha)
 
+    """
+    ENERGY BALANCE AND VELOCITY!
+    """
 
     def Gen_velocities(self):
         Vx = np.zeros(self.N)
@@ -167,14 +180,20 @@ class gen_cluster:
         self.Vy = Vy*a
         self.Vz = Vz*a
 
+    """
+    GRAPHING ;)
+    """
 
-
-    def graph(self):
-        fig = plt.figure()
-        ax = fig.add_subplot(111,projection='3d')
-        ax.scatter(self.X,self.Y,self.Z)
-        ax.set_box_aspect([1,1,1])
-        plt.show()
+    def graph(self,dimentions):
+        if dimentions == '3D':
+            fig = plt.figure()
+            ax = fig.add_subplot(111,projection='3d')
+            ax.scatter(self.X,self.Y,self.Z)
+            ax.set_box_aspect([1,1,1])
+            plt.show()
+        if dimentions == '2D':
+            plt.scatter(self.X,self.Y)
+            plt.show()
 
 
 
