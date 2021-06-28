@@ -55,12 +55,32 @@ class gen_cluster:
             for i in range(0,self.N):
                 Mass[i] = 0.2
             self.Mass = Mass
-        if IMF == 'OTHER':
-            #OTHER IMF CODE HERE!
-            i = 0 # place holder code!
+        if IMF == 'KROUPA':
+            self.Mass = self.cust_dis(0,20,self.Kroupa_IMF)
         else:
             print("INPUT ERROR: Please specify 'constant' or....")
 
+    def cust_dis(self,x0,x1,imf,nControl=10**6):
+        sample = []
+        nLoop  = 0
+        while len(sample)<self.N and nLoop<nControl:
+            x = np.random.uniform(x0,x1)     
+            prop = imf(x)
+            assert prop>=0
+            if np.random.uniform(0,1) <= prop: #26.67 is max probability 
+                sample += [x]
+            nLoop+= 1
+        return np.array(sample)
+    
+    def Kroupa_IMF(self,m):
+        alpha = 0
+        if m > 0 and m < 0.08:
+            alpha = 0.3
+        if m > 0.08 and m < 0.5:
+            alpha = 1.3
+        if m > 0.5:
+            alpha = 2.3
+        return m**(-alpha)
 
 
     def Gen_velocities(self):
@@ -104,40 +124,52 @@ class gen_cluster:
 
 
 
-        
+
 class get_planet:
     """
     This class will create a planetary systems based on input parameters on a clsuters system.
     Takes the inputs of theta (to pick the starting position of the orbit), M_star, M_planet, Phi and eccentricity and semi major axis a.
     Phi should all for the inclination of the orbit to be changed. 
     """
-    def __init__(self,x):
+    def __init__(self,x): #x must be a list of each of these parameters! 
         self.theta = x[0]
         self.M_star = x[1]
         self.M_planet = x[2]
         self.phi = x[3]
         self.a = x[4]
         self.e = x[5]
+        self.Np = len(x[2])
 
     def calculate_params(self):
         self.c = self.a*self.e
         self.b = np.sqrt((self.a**2)- (self.c**2))
-        self.R_vec = np.array([self.a*np.cos(self.theta)-self.c, self.b*np.sin(self.theta),0])
-        
-        Vmax = np.sqrt(G*(self.M_star+self.M_planet)*M_sol * ((2)/(np.linalg.norm(self.R_vec)*AU) - (1)/(self.a*AU)))
-        self.V_vec = np.array([Vmax*np.sin(self.theta)*np.cos(self.phi),Vmax*np.cos(self.theta)*np.cos(self.phi),Vmax*np.sin(self.phi)])
+        self.R_vec = np.zeros((self.Np,3))
+        self.V_vec = np.zeros((self.Np,3))
+        for i in range(0,self.Np):
+            self.R_vec[i,0] = self.a[i]*np.cos(self.theta[i])-self.c[i]
+            self.R_vec[i,1] = self.b[i]*np.sin(self.theta[i])
+            self.R_vec[i,2] = 0
+            Vmax = np.sqrt(G*(self.M_star+self.M_planet[i])*M_sol * ((2)/(np.linalg.norm(self.R_vec[i])*AU) - (1)/(self.a[i]*AU)))
+            self.V_vec[i,0] = Vmax*np.sin(self.theta[i])*np.cos(self.phi[i])
+            self.V_vec[i,1] = Vmax*np.cos(self.theta[i])*np.cos(self.phi[i])
+            self.V_vec[i,2] = Vmax*np.sin(self.phi[i])
+            
     
     def graph(self,dimension):
         t = np.linspace(0,2*np.pi, 200)
-        x = -self.c + self.a*np.cos(t)
-        y = self.b*np.sin(t)
+        x = np.zeros((self.Np,200))
+        y = np.zeros((self.Np,200))
+        for i in range(0,self.Np):
+            x[i,:] = -self.c[i] + self.a[i]*np.cos(t)
+            y[i,:] = self.b[i]*np.sin(t)
         
         if dimension == '2D':
 
-            plt.figure(figsize=[5*self.a,5*self.b]) #figsize changes to appropriate deimensions.
-            plt.plot(x,y,linestyle='--')
+            plt.figure(figsize=[3*np.max(self.a),3*np.max(self.b)]) #figsize changes to appropriate deimensions.
+            for i in range(0,self.Np):
+                plt.plot(x[i],y[i],linestyle='--')
+                plt.scatter(self.R_vec[i,0],self.R_vec[i,1],label='Planet'+str(i+1)+'M ='+str(self.M_planet[i]))
             plt.scatter(0,0,label='Star')
-            plt.scatter(self.R_vec[0],self.R_vec[1],label='Planet')
             plt.legend()
             plt.show()
 
@@ -146,11 +178,13 @@ class get_planet:
             fig = plt.figure()
             ax = fig.add_subplot(111,projection='3d')
             ax.scatter(0,0,0,label='star',s=40)
-            ax.plot(x,y,0,linestyle='--')
-            ax.scatter(self.R_vec[0],self.R_vec[1],self.R_vec[2],label='Planet')
-            ax.set_box_aspect([1*self.a,1*self.b,1]) #figsize changes to appropriate dimentions
+            for i in range(0,self.Np):
+                ax.plot(x[i],y[i],0,linestyle='--')
+                ax.scatter(self.R_vec[i,0],self.R_vec[i,1],self.R_vec[i,2],label='Planet'+str(i+1)+'M ='+str(self.M_planet[i]))
+            ax.set_box_aspect([1*np.max(self.a),1*np.max(self.b),1]) #figsize changes to appropriate dimentions
             plt.legend()
             plt.show()
+
 
         
 
