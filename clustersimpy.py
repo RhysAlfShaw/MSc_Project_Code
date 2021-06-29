@@ -21,8 +21,8 @@ class gen_cluster:
         self.Rmax = x[0]
         self.N = x[1]
         self.q = x[2]
-    
 
+    
 
     def Gen_positions(self,distribution,D=1,a=1,b=1,c=1):
         X = np.zeros(self.N)
