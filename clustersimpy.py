@@ -90,7 +90,7 @@ class gen_cluster:
                         [ (1/2)*b ,  (1/2)*a , -(1/2)*c],
                         [ (1/2)*b , -(1/2)*a ,  (1/2)*c],
                         [-(1/2)*b ,  (1/2)*a ,  (1/2)*c]])
-        noise = np.random.normal(0,0.01, size=(8,3))  #adds gaussian noise
+        noise = np.random.normal(0,0.1, size=(8,3))  #adds gaussian noise
         new = np.subtract(one, parent) + noise
         return new
 
@@ -188,11 +188,11 @@ class gen_cluster:
         if dimentions == '3D':
             fig = plt.figure()
             ax = fig.add_subplot(111,projection='3d')
-            ax.scatter(self.X,self.Y,self.Z)
+            ax.scatter(self.X,self.Y,self.Z,s=1)
             ax.set_box_aspect([1,1,1])
             plt.show()
         if dimentions == '2D':
-            plt.scatter(self.X,self.Y)
+            plt.scatter(self.X,self.Y,s=1)
             plt.show()
 
 
