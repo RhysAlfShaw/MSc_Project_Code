@@ -175,7 +175,7 @@ class gen_cluster:
         for i in range(0,self.N):
             Ek_tot += 0.5 * self.Mass[i] *M_sol* (np.sqrt(Vx[i]**2 + Vy[j]**2 + Vz[i]**2))**2
         
-        a = np.sqrt((self.q*PE_tot)/(Ek_tot))
+        a = np.sqrt((self.q*PE_tot)/(Ek_tot)) # q=2 is when cluster is at equlibrium. cold is anything greater than 2.
         self.Vx = Vx*a
         self.Vy = Vy*a
         self.Vz = Vz*a
