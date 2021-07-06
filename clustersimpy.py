@@ -12,11 +12,13 @@ AU = 1.49E11
 
 
 class gen_cluster:
+
     """
     This class will create a cluster, where options exist for different star distributions
     different IMFs and for other parameters such as N, radius of clusters sphere,
     and the virial ratio q.
     """
+
     def __init__(self,x):
         self.Rmax = x[0]
         self.N = x[1]
@@ -37,7 +39,7 @@ class gen_cluster:
             while i < self.N:
                 x = np.random.uniform(-self.Rmax,self.Rmax)
                 y = np.random.uniform(-self.Rmax,self.Rmax)
-                z = np.random.uniform(-self.Rmax,self.Rmax)
+                z = np.random.uniform(-self.Rmax,self.Rmax)                
                 if np.sqrt(x**2+y**2+z**2) < self.Rmax :
                     X[i] = x    
                     Y[i] = y
@@ -46,10 +48,12 @@ class gen_cluster:
             self.X = X
             self.Y = Y
             self.Z = Z
+
         """
         Fractal algorithm goodwin & whitworth (2003)
         creates fractal distribution and also creates associated velocities.
         """
+
         if distribution == 'Fractal':
     
             gen_number = 0
@@ -84,6 +88,7 @@ class gen_cluster:
             print('Number of Generations :',gen_number)
             print('Number of final stars :',n)
             print('Maximum Radius of clsuter:',self.Rmax)
+            
             PE_tot = 0
             for k in range(1,len(self.Mass)):
                 for j in range(0,k-1):
@@ -105,13 +110,12 @@ class gen_cluster:
             print('min v (m/s):',np.min(self.V))
             print('max v (m/s):',np.max(self.V))
 
-
-        else:
-            print("INPUT ERROR: Please specify 'Uniform'or ....")
     
+
     """
     FRACTAL ALGORITHM FUNCTIONS!
     """
+
 
     def Genlen(self,n):
         return self.a*(1/2)**n , self.b*(1/2)**n, self.c*(1/2)**n
@@ -135,9 +139,11 @@ class gen_cluster:
     def prob_of_mature(self,D):
         return 2**(D-3)
     
+
     """
     Gen_vel generates velocities of children around a parent where they are themselves in virial equilibrium.
     """
+
 
     def gen_vel(self,vp,x):
         vel = np.random.uniform(-1,1,size=(8,3))
@@ -155,10 +161,13 @@ class gen_cluster:
         vel = a*vel - vp                            
         return vel, Mass
 
+
     """
     SURVIVAL
     Determines which of the children will mature and only includes those that survived.
+    Returns array of positions, velocity and mass of the mature children.
     """
+
 
     def survial(self,children,vel,D):
         parent = []
@@ -174,6 +183,7 @@ class gen_cluster:
                 Mass += [mass[i]]
         return np.array(parent), np.array(vel_sur), np.array(Mass)
 
+
     """
     IMF FUNCTIONS!
 
@@ -187,10 +197,12 @@ class gen_cluster:
                 Mass[i] = 0.2
             self.Mass = Mass
         if IMF == 'KROUPA':
-            self.Mass = self.cust_dis(0,20,self.Kroupa_IMF)
+            self.Mass = self.cust_dis(self.N,0,20,self.Kroupa_IMF)
             print('Median Mass: ',np.median(self.Mass))
         else:
             print("INPUT ERROR: Please specify 'constant' or 'KROUPA' IMFs")
+
+
 
     def cust_dis(self,N,x0,x1,imf,nControl=10**6):
         sample = []
@@ -203,6 +215,7 @@ class gen_cluster:
                 sample += [x]
             nLoop+= 1
         return np.array(sample)
+
     
     def Kroupa_IMF(self,m):
         alpha = 0
@@ -214,41 +227,35 @@ class gen_cluster:
             alpha = 2.3
         return m**(-alpha)
 
+
     """
     ENERGY BALANCE AND VELOCITY!
     """
 
-    def Gen_velocities(self):
-        Vx = np.zeros(self.N)
-        Vy = np.zeros(self.N)
-        Vz = np.zeros(self.N)
 
-        for i in range(0,self.N): # Velocities between 0 and 1.
-            Vx[i] = np.random.uniform(-1,1)
-            Vy[i] = np.random.uniform(-1,1)
-            Vz[i] = np.random.uniform(-1,1)
+    def Gen_velocities(self):
+        self.V = np.random.uniform(-1,1,size=(self.N,3))
         PE_tot = 0
-        #try:
-        for k in range(1,self.N): #note since 0 is the begining of the index.
+        
+        # Calculating Graviational Potential!
+
+        for k in range(1,self.N):     #note since 0 is the begining of the index.
              for j in range(0,k-1):
                 R_res = np.sqrt((self.X[k]-self.X[j])**2 + (self.Y[k]-self.Y[j])**2 + (self.Z[k]-self.Z[j])**2)
                 PE_tot += (G * self.Mass[j]*M_sol**2*self.Mass[k])/(R_res*AU) 
-        
-        #else:
-        #    print("MASS OR POSITION ERROR!!, Please run Gen_position & Gen_mass first to prevent this error!!")
-        
         print('Potential Energy',PE_tot)
+
+
         # Calculating Kinetic Energy!
         Ek_tot = 0
         for i in range(0,self.N):
-            Ek_tot += 0.5 * self.Mass[i] *M_sol* (np.sqrt(Vx[i]**2 + Vy[i]**2 + Vz[i]**2))**2
+            Ek_tot += 0.5 * self.Mass[i] *M_sol* (np.linalg.norm(self.V))**2
         print('Total kineitc energy (with out added factor): ',Ek_tot)
         a = np.sqrt((self.q*PE_tot)/(Ek_tot))
         print('Velocity factor: ',a)
+        self.V = a*self.V
 
-        self.Vx = Vx*a
-        self.Vy = Vy*a
-        self.Vz = Vz*a
+
 
     """
     GRAPHING ;)
@@ -302,6 +309,8 @@ class get_planet:
             self.V_vec[i,1] = Vmax*np.cos(self.theta[i])
             self.V_vec[i,2] = 0
             self.V_vec[i,:] = self.rotation(self.V_vec[i,:],self.theta_1,self.phi,self.sig)
+
+
             
     def ellipse(self,t,a,b,c):
         x = -c + a*np.cos(t)
@@ -310,11 +319,15 @@ class get_planet:
         X = np.array([x,y,z])
         return  X.T
 
+
+
     def rotation(self,X,theta_1,phi,sig):
         M_rot = np.array([[np.cos(theta_1)*np.cos(phi),np.cos(theta_1)*np.sin(phi), - np.sin(theta_1)],
                 [- np.cos(sig)*np.sin(phi) + np.sin(sig)*np.sin(theta_1)*np.cos(phi),np.cos(sig)*np.cos(phi) + np.sin(sig)*np.sin(theta_1)*np.sin(phi),np.sin(sig)*np.cos(theta_1)],
                 [np.sin(sig)*np.sin(theta_1) + np.cos(sig)*np.sin(theta_1)*np.cos(phi),-np.sin(sig)*np.cos(theta_1) + np.cos(sig)*np.sin(theta_1)*np.sin(phi),np.sin(sig)*np.cos(theta_1)]])
         return  np.matmul(M_rot,X)
+
+
 
     def graph(self,dimension):
 
@@ -333,7 +346,10 @@ class get_planet:
             plt.legend()
             plt.show()
 
+
+
         if dimension == '3D':
+
 
             fig = plt.figure()
             ax = fig.add_subplot(111,projection='3d')
