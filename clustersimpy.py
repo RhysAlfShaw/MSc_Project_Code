@@ -24,6 +24,7 @@ class gen_cluster:
         self.a = x[0]
         self.b = x[0]
         self.c = x[0]
+        self.sigma = x[3]
 
     
 
@@ -45,7 +46,12 @@ class gen_cluster:
             self.X = X
             self.Y = Y
             self.Z = Z
-        if distribution == 'Fractal':  #fractal algorithm was from Goodwin & whitworth (2003)
+        """
+        Fractal algorithm goodwin & whitworth (2003)
+        creates fractal distribution and also creates associated velocities.
+        """
+        if distribution == 'Fractal':
+    
             gen_number = 0
             n = 0
             while n < self.N:
@@ -122,13 +128,17 @@ class gen_cluster:
                         [ (1/2)*b ,  (1/2)*a , -(1/2)*c],
                         [ (1/2)*b , -(1/2)*a ,  (1/2)*c],
                         [-(1/2)*b ,  (1/2)*a ,  (1/2)*c]])
-        noise = np.random.normal(0,0.02, size=(8,3))*self.a  #adds gaussian noise
+        noise = np.random.normal(0,self.sigma, size=(8,3))*self.a  #adds gaussian noise
         new = np.subtract(one, parent) + noise
         return new
 
     def prob_of_mature(self,D):
         return 2**(D-3)
     
+    """
+    Gen_vel generates velocities of children around a parent where they are themselves in virial equilibrium.
+    """
+
     def gen_vel(self,vp,x):
         vel = np.random.uniform(-1,1,size=(8,3))
         Mass = self.cust_dis(len(vel),0,20,self.Kroupa_IMF)
@@ -145,6 +155,10 @@ class gen_cluster:
         vel = a*vel - vp                            
         return vel, Mass
 
+    """
+    SURVIVAL
+    Determines which of the children will mature and only includes those that survived.
+    """
 
     def survial(self,children,vel,D):
         parent = []
