@@ -231,6 +231,7 @@ class gen_cluster:
         print('Total kineitc energy (with out added factor): ',Ek_tot)
         a = np.sqrt((self.q*PE_tot)/(Ek_tot))
         print('Velocity factor: ',a)
+
         self.Vx = Vx*a
         self.Vy = Vy*a
         self.Vz = Vz*a
