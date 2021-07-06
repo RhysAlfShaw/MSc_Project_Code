@@ -21,10 +21,13 @@ class gen_cluster:
         self.Rmax = x[0]
         self.N = x[1]
         self.q = x[2]
+        self.a = x[0]
+        self.b = x[0]
+        self.c = x[0]
 
     
 
-    def Gen_positions(self,distribution,D=1,a=1,b=1,c=1):
+    def Gen_positions(self,distribution,D=1):
         X = np.zeros(self.N)
         Y = np.zeros(self.N)
         Z = np.zeros(self.N)
@@ -48,24 +51,53 @@ class gen_cluster:
             while n < self.N:
                 if n == 0:
                     parent = np.zeros(1)
+                    vel_p = np.array([0,0,0])
+                    Mass = np.array([0])
                 for i in range(0,len(parent)):
-                    x = self.gen_pos(parent[i],gen_number,0)
+                    vp = vel_p[i]
+                    x = self.gen_pos(parent[i],gen_number)
+                    vel = self.gen_vel(vp,x)
                     if i == 0 and n == 0:
-                        par = self.survial(x,D)
+                        par, vel_p, Mass_new = self.survial(x,vel,D)
                     else:
-                        new = self.survial(x,D)
+                        new, vel_n, Mass_new = self.survial(x,vel,D)
                         if len(new) == 0:
                             break
                         else:
                             par = np.vstack((par,new))
+                            vel_p = np.vstack((vel_p,vel_n))
+                            Mass = np.hstack((Mass,Mass_new))
                 parent = par
+            
                 n = len(parent)
                 gen_number += 1
+            self.Mass = Mass
             self.X = parent[:,0]
             self.Y = parent[:,1]
             self.Z = parent[:,2]
             print('Number of Generations :',gen_number)
             print('Number of final stars :',n)
+            print('Maximum Radius of clsuter:',self.Rmax)
+            PE_tot = 0
+            for k in range(1,len(self.Mass)):
+                for j in range(0,k-1):
+                    R_res = np.sqrt((parent[k,0]-parent[j,0])**2 + (parent[k,1]-parent[j,1])**2 + (parent[k,2]-parent[j,2])**2)
+                    PE_tot += (G * self.Mass[j]*(M_sol**2)*self.Mass[k])/(R_res*AU) 
+        
+            print('Potential Energy (J) :',PE_tot)
+            Ek_tot = 0
+            print('Median Mass (Sol Mass)', np.median(self.Mass))
+            for i in range(0,len(self.Mass)):
+                Ek_tot += 0.5 * self.Mass[i] *M_sol* (np.sqrt(vel_p[i,0]**2 + vel_p[i,1]**2 + vel_p[i,2]**2))**2 
+            print('Total kineitc energy (with out added factor): ',Ek_tot)
+            a = np.sqrt((self.q*PE_tot)/(Ek_tot))
+            print('Velocity factor: ',a)
+            self.V = vel_p*a
+            print('mean v (m/s):',np.mean(self.V))
+            print('median v (m/s):',np.median(self.V))
+            print('std v (m/s):',np.std(self.V))
+            print('min v (m/s):',np.min(self.V))
+            print('max v (m/s):',np.max(self.V))
 
 
         else:
@@ -75,11 +107,11 @@ class gen_cluster:
     FRACTAL ALGORITHM FUNCTIONS!
     """
 
-    def Genlen(self,n,a=1,b=1,c=1):
-        return a*(1/2)**n , b*(1/2)**n, c*(1/2)**n
+    def Genlen(self,n):
+        return self.a*(1/2)**n , self.b*(1/2)**n, self.c*(1/2)**n
 
 
-    def gen_pos(self,parent,n,noise):
+    def gen_pos(self,parent,n):
     
         a,b,c = self.Genlen(n)
         one = np.array([[-(1/2)*b , -(1/2)*a , -(1/2)*c],
@@ -90,22 +122,43 @@ class gen_cluster:
                         [ (1/2)*b ,  (1/2)*a , -(1/2)*c],
                         [ (1/2)*b , -(1/2)*a ,  (1/2)*c],
                         [-(1/2)*b ,  (1/2)*a ,  (1/2)*c]])
-        noise = np.random.normal(0,0.1, size=(8,3))  #adds gaussian noise
+        noise = np.random.normal(0,0.02, size=(8,3))*self.a  #adds gaussian noise
         new = np.subtract(one, parent) + noise
         return new
 
     def prob_of_mature(self,D):
         return 2**(D-3)
+    
+    def gen_vel(self,vp,x):
+        vel = np.random.uniform(-1,1,size=(8,3))
+        Mass = self.cust_dis(len(vel),0,20,self.Kroupa_IMF)
+        X, Y, Z = x[:,0], x[:,1], x[:,2]
+        PE_tot = 0
+        for k in range(1,len(X)): 
+            for j in range(0,k-1):
+                R_res = np.sqrt((X[k]-X[j])**2 + (Y[k]-Y[j])**2 + (Z[k]-Z[j])**2)
+                PE_tot += (G*Mass[k]*M_sol**2*Mass[j])/(R_res*AU)     
+        Ek_tot = 0
+        for i in range(0,len(X)):
+            Ek_tot += 0.5 * Mass[i]*M_sol* (np.sqrt(vel[i,0]**2 + vel[i,1]**2 + vel[i,2]**2))**2
+        a = np.sqrt((0.5*PE_tot)/(Ek_tot)) 
+        vel = a*vel - vp                            
+        return vel, Mass
 
 
-    def survial(self,children,D):
+    def survial(self,children,vel,D):
         parent = []
+        vel_sur = []
+        v, mass = vel
+        Mass = []
         for i in range(0,len(children)):
             rand = np.random.uniform(0,1)
             prob = self.prob_of_mature(D)
             if rand<= prob:
                 parent+=[children[i]]
-        return np.array(parent)
+                vel_sur+=[v[i]] 
+                Mass += [mass[i]]
+        return np.array(parent), np.array(vel_sur), np.array(Mass)
 
     """
     IMF FUNCTIONS!
@@ -121,13 +174,14 @@ class gen_cluster:
             self.Mass = Mass
         if IMF == 'KROUPA':
             self.Mass = self.cust_dis(0,20,self.Kroupa_IMF)
+            print('Median Mass: ',np.median(self.Mass))
         else:
             print("INPUT ERROR: Please specify 'constant' or 'KROUPA' IMFs")
 
-    def cust_dis(self,x0,x1,imf,nControl=10**6):
+    def cust_dis(self,N,x0,x1,imf,nControl=10**6):
         sample = []
         nLoop  = 0
-        while len(sample)<self.N and nLoop<nControl:
+        while len(sample)<N and nLoop<nControl:
             x = np.random.uniform(x0,x1)     
             prop = imf(x)
             assert prop>=0
@@ -156,9 +210,9 @@ class gen_cluster:
         Vz = np.zeros(self.N)
 
         for i in range(0,self.N): # Velocities between 0 and 1.
-            Vx[i] = np.random.uniform(0,1)
-            Vy[i] = np.random.uniform(0,1)
-            Vz[i] = np.random.uniform(0,1)
+            Vx[i] = np.random.uniform(-1,1)
+            Vy[i] = np.random.uniform(-1,1)
+            Vz[i] = np.random.uniform(-1,1)
         PE_tot = 0
         #try:
         for k in range(1,self.N): #note since 0 is the begining of the index.
@@ -173,9 +227,10 @@ class gen_cluster:
         # Calculating Kinetic Energy!
         Ek_tot = 0
         for i in range(0,self.N):
-            Ek_tot += 0.5 * self.Mass[i] *M_sol* (np.sqrt(Vx[i]**2 + Vy[j]**2 + Vz[i]**2))**2
-        
+            Ek_tot += 0.5 * self.Mass[i] *M_sol* (np.sqrt(Vx[i]**2 + Vy[i]**2 + Vz[i]**2))**2
+        print('Total kineitc energy (with out added factor): ',Ek_tot)
         a = np.sqrt((self.q*PE_tot)/(Ek_tot))
+        print('Velocity factor: ',a)
         self.Vx = Vx*a
         self.Vy = Vy*a
         self.Vz = Vz*a
