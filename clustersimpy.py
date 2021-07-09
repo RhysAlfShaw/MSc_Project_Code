@@ -433,7 +433,9 @@ class data:
     def __init__(self,filename):
         self.filename = filename
 
-
+    """
+    read function here is an adaptaion of the code that was written by supervisor.
+    """
     def read(self):
         f = FortranFile('Simple_planet_test.dat', 'r')
         # number of bodies
@@ -469,6 +471,7 @@ class data:
         print(self.filename,' Data Read successfully!')
     
     def write(self,R_,V_,Nsys,t_start,Mass,Mass_unit=1.9884699E33,Length_unit=3.0856775E18,time_unit=31556952):
+        
         #setting up the data to be written correctly.
         X = R_[:,0]
         Y = R_[:,1]
