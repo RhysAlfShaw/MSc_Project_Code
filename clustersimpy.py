@@ -63,22 +63,25 @@ class gen_cluster:
                     parent = np.zeros(1)
                     vel_p = np.array([0,0,0])
                     Mass = np.array([0])
+                
                 for i in range(0,len(parent)):
                     vp = vel_p[i]
                     x = self.gen_pos(parent[i],gen_number)
                     vel = self.gen_vel(vp,x)
                     if i == 0 and n == 0:
-                        par, vel_p, Mass_new = self.survial(x,vel,D)
+                        par, vel_p, Mass = self.survial(x,vel,D)
+                    
                     else:
                         new, vel_n, Mass_new = self.survial(x,vel,D)
+                        
                         if len(new) == 0:
                             break
                         else:
                             par = np.vstack((par,new))
                             vel_p = np.vstack((vel_p,vel_n))
                             Mass = np.hstack((Mass,Mass_new))
+                            
                 parent = par
-            
                 n = len(parent)
                 gen_number += 1
             self.Mass = Mass
@@ -437,7 +440,7 @@ class data:
     read function here is an adaptaion of the code that was written by supervisor.
     """
     def read(self):
-        f = FortranFile('Simple_planet_test.dat', 'r')
+        f = FortranFile(self.filename, 'r')
         # number of bodies
         self.N = f.read_ints(np.int32)[0]
         print('N = ', self.N)
