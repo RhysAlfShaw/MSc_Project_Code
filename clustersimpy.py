@@ -336,7 +336,7 @@ class get_planet:
 
         t = np.linspace(0,2*np.pi, 200)
         if dimension == '2D':
-            plt.figure(figsize=[5*np.max(self.a),5*np.max(self.b)]) #figsize changes to appropriate deimensions.
+            plt.figure(figsize=[5,5]) #figsize changes to appropriate deimensions.
             for i in range(0,self.Np):
                 X = self.ellipse(t,self.a[i],self.b[i],self.c[i])
                 for j in range(0,200):
@@ -363,7 +363,7 @@ class get_planet:
                     X[j] = self.rotation(X[j],self.theta_1,self.phi,self.sig)
                 ax.plot(X[:,0],X[:,1],X[:,2],linestyle='--')
                 ax.scatter(self.R_vec[i,0],self.R_vec[i,1],self.R_vec[i,2],label='Planet'+str(i+1)+'M ='+str(self.M_planet[i]))
-            ax.set_box_aspect([1*np.max(self.a),1*np.max(self.b),1]) #figsize changes to appropriate dimentions
+            ax.set_box_aspect([1,1,1]) #figsize changes to appropriate dimentions
             ax.set_xlabel('X')
             ax.set_ylabel('Y')
             ax.set_zlabel('Z')
