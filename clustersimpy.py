@@ -437,7 +437,7 @@ class data:
     read function here is an adaptaion of the code that was written by supervisor.
     """
     def read(self):
-        f = FortranFile('Simple_planet_test.dat', 'r')
+        f = FortranFile(self.filename, 'r')
         # number of bodies
         self.N = f.read_ints(np.int32)[0]
         print('N = ', self.N)
