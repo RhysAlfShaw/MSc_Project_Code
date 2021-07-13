@@ -1,0 +1,38 @@
+######
+
+CLUSTERSIMPY latest version: 1.0
+
+Description: 
+
+Clustersimpy is a program to make, and write stellar clusters with planetary systems to a file for simulations. This code allows for some customization of cluster distrbution (current customizability is descibed below), velocity distrbution, energy balance and mass distribution. 
+
+Fuctions avalible in clustersimpy:
+
+
+**** gen_cluster(x) ****
+
+x must be an list of the following parameters: x = [Rmax, N, q, a, b, c, sigma]
+Rmax - maximum radius of the cluster (descibed it size, maybe smaller than this if fractal)
+N - number of star you want to populate your cluster
+q - energy balance (virial equilibrium q = 0.5)
+a,b,c - fractal box dimentions (ideeally square but not strict)
+
+funcitions callable in gen_cluster(x):
+
+	**** gen_position(disrtibution,D=1) ****
+	the distribution can be either "Uniform" or "Fractal"
+	D is by default 1 and represents the fractal dimension of the fractal substucture so is only 
+	useful for "Fractal". 
+		
+
+**** get_planet(x) ****
+
+
+
+**** measure(data) ****
+
+
+
+**** data(filename) ****
+
+
